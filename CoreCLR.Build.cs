@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using EpicGames.Core;
 using UnrealBuildTool;
 
@@ -305,11 +305,20 @@ public class CoreCLR : ModuleRules
 
 				if (HierarchySection.TryGetValue("PublishDirectory", out var Value))
 				{
-					var Match = Regex.Match(Value, @"Path=""([^""]+)""");
+					const string Prefix = "Path=\"";
 
-					if (Match.Success)
+					var Index = Value.IndexOf(Prefix, StringComparison.Ordinal);
+
+					if (Index >= 0)
 					{
-						return Match.Groups[1].Value;
+						Index += Prefix.Length;
+
+						var EndIndex = Value.IndexOf('"', Index);
+
+						if (EndIndex > Index)
+						{
+							return Value.Substring(Index, EndIndex - Index);
+						}
 					}
 				}
 			}
