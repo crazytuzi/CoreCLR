@@ -10,11 +10,17 @@ public class CoreCLR : ModuleRules
 	{
 		Type = ModuleType.External;
 
+		const int MajorVersion = 10;
+
+		const int MinorVersion = 0;
+
+		const int PatchVersion = 4;
+
 		PublicDefinitions.AddRange(new string[]
 		{
-			"DOTNET_MAJOR_VERSION=10",
-			"DOTNET_MINOR_VERSION=0",
-			"DOTNET_PATCH_VERSION=4"
+			$"DOTNET_MAJOR_VERSION={MajorVersion}",
+			$"DOTNET_MINOR_VERSION={MinorVersion}",
+			$"DOTNET_PATCH_VERSION={PatchVersion}"
 		});
 
 		var bIsDebug = Target.Configuration == UnrealTargetConfiguration.Debug ||
@@ -28,99 +34,56 @@ public class CoreCLR : ModuleRules
 
 		var LibraryPath = Path.Combine(ModuleDirectory, "lib", CoreCLRConfiguration);
 
+		var SharedPath = $"shared/Microsoft.NETCore.App/{MajorVersion}.{MinorVersion}.{PatchVersion}";
+
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
 			var PlatformLibraryPath = Path.Combine(LibraryPath, Target.Platform.ToString());
 
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/coreclr.dll" : "$(TargetOutputDir)/coreclr.dll",
-				Path.Combine(PlatformLibraryPath, "coreclr.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/hostfxr.dll" : "$(TargetOutputDir)/hostfxr.dll",
+			RuntimeDependencies.Add("$(BinaryOutputDir)/hostfxr.dll",
 				Path.Combine(PlatformLibraryPath, "hostfxr.dll"));
 
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/hostpolicy.dll" : "$(TargetOutputDir)/hostpolicy.dll",
-				Path.Combine(PlatformLibraryPath, "hostpolicy.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/clretwrc.dll" : "$(TargetOutputDir)/clretwrc.dll",
-				Path.Combine(PlatformLibraryPath, "clretwrc.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/clrgc.dll" : "$(TargetOutputDir)/clrgc.dll",
-				Path.Combine(PlatformLibraryPath, "clrgc.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/clrgcexp.dll" : "$(TargetOutputDir)/clrgcexp.dll",
-				Path.Combine(PlatformLibraryPath, "clrgcexp.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/clrjit.dll" : "$(TargetOutputDir)/clrjit.dll",
-				Path.Combine(PlatformLibraryPath, "clrjit.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/Microsoft.DiaSymReader.Native.amd64.dll"
-					: "$(TargetOutputDir)/Microsoft.DiaSymReader.Native.amd64.dll",
-				Path.Combine(PlatformLibraryPath, "Microsoft.DiaSymReader.Native.amd64.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/mscordaccore.dll"
-					: "$(TargetOutputDir)/mscordaccore.dll",
-				Path.Combine(PlatformLibraryPath, "mscordaccore.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/mscordaccore_amd64_amd64_42.42.42.42424.dll"
-					: "$(TargetOutputDir)/mscordaccore_amd64_amd64_42.42.42.42424.dll",
-				Path.Combine(PlatformLibraryPath, "mscordaccore_amd64_amd64_42.42.42.42424.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/mscordbi.dll" : "$(TargetOutputDir)/mscordbi.dll",
-				Path.Combine(PlatformLibraryPath, "mscordbi.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/mscorrc.dll" : "$(TargetOutputDir)/mscorrc.dll",
-				Path.Combine(PlatformLibraryPath, "mscorrc.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled ? "$(BinaryOutputDir)/msquic.dll" : "$(TargetOutputDir)/msquic.dll",
-				Path.Combine(PlatformLibraryPath, "msquic.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/System.IO.Compression.Native.dll"
-					: "$(TargetOutputDir)/System.IO.Compression.Native.dll",
-				Path.Combine(PlatformLibraryPath, "System.IO.Compression.Native.dll"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/CoreCLR.runtimeconfig.json"
-					: "$(TargetOutputDir)/CoreCLR.runtimeconfig.json",
+			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			if (bIsDebug)
-			{
-				RuntimeDependencies.Add(
-					Target.bIsEngineInstalled
-						? "$(BinaryOutputDir)/clrinterpreter.dll"
-						: "$(TargetOutputDir)/clrinterpreter.dll",
-					Path.Combine(PlatformLibraryPath, "clrinterpreter.dll"));
-			}
+			RuntimeDependencies.Add("$(BinaryOutputDir)/mscordaccore_amd64_amd64_42.42.42.42424.dll",
+				Path.Combine(PlatformLibraryPath, "mscordaccore_amd64_amd64_42.42.42.42424.dll"));
+
+			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
 			foreach (var File in Files)
 			{
-				var ModuleLastDirectory = Path.GetFullPath(Path.Combine(ModuleDirectory, ".."));
+				RuntimeDependencies.Add($"{SharedDirectory}/{Path.GetFileName(File)}", File);
+			}
 
-				var DestPath = File.Substring(ModuleLastDirectory.Length + 1,
-					File.Length - ModuleLastDirectory.Length - 1);
+			var DynamicLinkLibraries = new[]
+			{
+				"coreclr.dll",
+				"hostpolicy.dll",
+				"clrgc.dll",
+				"clrgcexp.dll",
+				"clrjit.dll",
+				"clretwrc.dll",
+				"mscordaccore.dll",
+				"mscordbi.dll",
+				"mscorrc.dll",
+				"Microsoft.DiaSymReader.Native.amd64.dll",
+				"System.IO.Compression.Native.dll",
+				"msquic.dll"
+			};
 
-				RuntimeDependencies.Add("$(BinaryOutputDir)/" + DestPath, File);
+			foreach (var DynamicLinkLibrary in DynamicLinkLibraries)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/{DynamicLinkLibrary}",
+					Path.Combine(PlatformLibraryPath, DynamicLinkLibrary));
+			}
+
+			if (bIsDebug)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/clrinterpreter.dll",
+					Path.Combine(PlatformLibraryPath, "clrinterpreter.dll"));
 			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux || Target.Platform == UnrealTargetPlatform.LinuxArm64)
@@ -128,67 +91,48 @@ public class CoreCLR : ModuleRules
 			var PlatformLibraryPath = Path.Combine(LibraryPath,
 				Target.Platform == UnrealTargetPlatform.Linux ? "Linux_x86_64" : "Linux_aarch64");
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libcoreclr.so",
-				Path.Combine(PlatformLibraryPath, "libcoreclr.so"));
-
 			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostfxr.so",
 				Path.Combine(PlatformLibraryPath, "libhostfxr.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostpolicy.so",
-				Path.Combine(PlatformLibraryPath, "libhostpolicy.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrgc.so",
-				Path.Combine(PlatformLibraryPath, "libclrgc.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrgcexp.so",
-				Path.Combine(PlatformLibraryPath, "libclrgcexp.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrjit.so",
-				Path.Combine(PlatformLibraryPath, "libclrjit.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libcoreclrtraceptprovider.so",
-				Path.Combine(PlatformLibraryPath, "libcoreclrtraceptprovider.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libmscordaccore.so",
-				Path.Combine(PlatformLibraryPath, "libmscordaccore.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libmscordbi.so",
-				Path.Combine(PlatformLibraryPath, "libmscordbi.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Globalization.Native.so",
-				Path.Combine(PlatformLibraryPath, "libSystem.Globalization.Native.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.IO.Compression.Native.so",
-				Path.Combine(PlatformLibraryPath, "libSystem.IO.Compression.Native.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Native.so",
-				Path.Combine(PlatformLibraryPath, "libSystem.Native.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Net.Security.Native.so",
-				Path.Combine(PlatformLibraryPath, "libSystem.Net.Security.Native.so"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Security.Cryptography.Native.OpenSsl.so",
-				Path.Combine(PlatformLibraryPath, "libSystem.Security.Cryptography.Native.OpenSsl.so"));
 
 			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			if (bIsDebug)
-			{
-				RuntimeDependencies.Add("$(BinaryOutputDir)/libclrinterpreter.so",
-					Path.Combine(PlatformLibraryPath, "libclrinterpreter.so"));
-			}
+			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
 			foreach (var File in Files)
 			{
-				var ModuleLastDirectory = Path.GetFullPath(Path.Combine(ModuleDirectory, ".."));
+				RuntimeDependencies.Add($"{SharedDirectory}/{Path.GetFileName(File)}", File);
+			}
 
-				var DestPath = File.Substring(ModuleLastDirectory.Length + 1,
-					File.Length - ModuleLastDirectory.Length - 1);
+			var SharedObjects = new[]
+			{
+				"libcoreclr.so",
+				"libhostpolicy.so",
+				"libclrgc.so",
+				"libclrgcexp.so",
+				"libclrjit.so",
+				"libcoreclrtraceptprovider.so",
+				"libmscordaccore.so",
+				"libmscordbi.so",
+				"libSystem.Globalization.Native.so",
+				"libSystem.IO.Compression.Native.so",
+				"libSystem.Native.so",
+				"libSystem.Net.Security.Native.so",
+				"libSystem.Security.Cryptography.Native.OpenSsl.so"
+			};
 
-				RuntimeDependencies.Add("$(BinaryOutputDir)/" + DestPath, File);
+			foreach (var SharedObject in SharedObjects)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/{SharedObject}",
+					Path.Combine(PlatformLibraryPath, SharedObject));
+			}
+
+			if (bIsDebug)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/libclrinterpreter.so",
+					Path.Combine(PlatformLibraryPath, "libclrinterpreter.so"));
 			}
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
@@ -203,70 +147,47 @@ public class CoreCLR : ModuleRules
 					? "macOS_x86_64"
 					: "macOS_arm64");
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libcoreclr.dylib",
-				Path.Combine(PlatformLibraryPath, "libcoreclr.dylib"));
-
 			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostfxr.dylib",
 				Path.Combine(PlatformLibraryPath, "libhostfxr.dylib"));
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostpolicy.dylib",
-				Path.Combine(PlatformLibraryPath, "libhostpolicy.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrgc.dylib",
-				Path.Combine(PlatformLibraryPath, "libclrgc.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrgcexp.dylib",
-				Path.Combine(PlatformLibraryPath, "libclrgcexp.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libclrjit.dylib",
-				Path.Combine(PlatformLibraryPath, "libclrjit.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libmscordaccore.dylib",
-				Path.Combine(PlatformLibraryPath, "libmscordaccore.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libmscordbi.dylib",
-				Path.Combine(PlatformLibraryPath, "libmscordbi.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Globalization.Native.dylib",
-				Path.Combine(PlatformLibraryPath, "libSystem.Globalization.Native.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.IO.Compression.Native.dylib",
-				Path.Combine(PlatformLibraryPath, "libSystem.IO.Compression.Native.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Native.dylib",
-				Path.Combine(PlatformLibraryPath, "libSystem.Native.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Net.Security.Native.dylib",
-				Path.Combine(PlatformLibraryPath, "libSystem.Net.Security.Native.dylib"));
-
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libSystem.Security.Cryptography.Native.Apple.dylib",
-				Path.Combine(PlatformLibraryPath, "libSystem.Security.Cryptography.Native.Apple.dylib"));
-
-			RuntimeDependencies.Add(
-				Target.bIsEngineInstalled
-					? "$(BinaryOutputDir)/CoreCLR.runtimeconfig.json"
-					: "$(TargetOutputDir)/CoreCLR.runtimeconfig.json",
+			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			if (bIsDebug)
-			{
-				RuntimeDependencies.Add(
-					Target.bIsEngineInstalled
-						? "$(BinaryOutputDir)/libclrinterpreter.dylib"
-						: "$(TargetOutputDir)/libclrinterpreter.dylib",
-					Path.Combine(PlatformLibraryPath, "libclrinterpreter.dylib"));
-			}
+			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
 			foreach (var File in Files)
 			{
-				var ModuleLastDirectory = Path.GetFullPath(Path.Combine(ModuleDirectory, ".."));
+				RuntimeDependencies.Add($"{SharedDirectory}/{Path.GetFileName(File)}", File);
+			}
 
-				var DestPath = File.Substring(ModuleLastDirectory.Length + 1,
-					File.Length - ModuleLastDirectory.Length - 1);
+			var DynamicLibraries = new[]
+			{
+				"libcoreclr.dylib",
+				"libhostpolicy.dylib",
+				"libclrgc.dylib",
+				"libclrgcexp.dylib",
+				"libclrjit.dylib",
+				"libmscordaccore.dylib",
+				"libmscordbi.dylib",
+				"libSystem.Globalization.Native.dylib",
+				"libSystem.IO.Compression.Native.dylib",
+				"libSystem.Native.dylib",
+				"libSystem.Net.Security.Native.dylib",
+				"libSystem.Security.Cryptography.Native.Apple.dylib"
+			};
 
-				RuntimeDependencies.Add("$(BinaryOutputDir)/" + DestPath, File);
+			foreach (var DynamicLibrary in DynamicLibraries)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/{DynamicLibrary}",
+					Path.Combine(PlatformLibraryPath, DynamicLibrary));
+			}
+
+			if (bIsDebug)
+			{
+				RuntimeDependencies.Add($"{SharedDirectory}/libclrinterpreter.dylib",
+					Path.Combine(PlatformLibraryPath, "libclrinterpreter.dylib"));
 			}
 		}
 
