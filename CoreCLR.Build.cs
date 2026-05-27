@@ -23,8 +23,11 @@ public class CoreCLR : ModuleRules
 			$"DOTNET_PATCH_VERSION={PatchVersion}"
 		});
 
-		var bIsDebug = Target.Configuration == UnrealTargetConfiguration.Debug ||
-		               Target.Configuration == UnrealTargetConfiguration.DebugGame;
+		var bUseRelease = true;
+
+		var bIsDebug = !bUseRelease &&
+		               (Target.Configuration == UnrealTargetConfiguration.Debug ||
+		                Target.Configuration == UnrealTargetConfiguration.DebugGame);
 
 		var CoreCLRConfiguration = bIsDebug ? "Debug" : "Release";
 
