@@ -39,20 +39,24 @@ public class CoreCLR : ModuleRules
 
 		var SharedPath = $"shared/Microsoft.NETCore.App/{MajorVersion}.{MinorVersion}.{PatchVersion}";
 
+		var BinaryOutputDirectory = Target.bBuildEditor
+			? Path.Combine(PluginDirectory, "Binaries", Target.Platform.ToString())
+			: "$(BinaryOutputDir)";
+
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
 			var PlatformLibraryPath = Path.Combine(LibraryPath, Target.Platform.ToString());
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/hostfxr.dll",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/hostfxr.dll",
 				Path.Combine(PlatformLibraryPath, "hostfxr.dll"));
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/mscordaccore_amd64_amd64_42.42.42.42424.dll",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/mscordaccore_amd64_amd64_42.42.42.42424.dll",
 				Path.Combine(PlatformLibraryPath, "mscordaccore_amd64_amd64_42.42.42.42424.dll"));
 
-			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
+			var SharedDirectory = $"{BinaryOutputDirectory}/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
@@ -94,13 +98,13 @@ public class CoreCLR : ModuleRules
 			var PlatformLibraryPath = Path.Combine(LibraryPath,
 				Target.Platform == UnrealTargetPlatform.Linux ? "Linux_x86_64" : "Linux_aarch64");
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostfxr.so",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/libhostfxr.so",
 				Path.Combine(PlatformLibraryPath, "libhostfxr.so"));
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
+			var SharedDirectory = $"{BinaryOutputDirectory}/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
@@ -150,13 +154,13 @@ public class CoreCLR : ModuleRules
 					? "macOS_x86_64"
 					: "macOS_arm64");
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/libhostfxr.dylib",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/libhostfxr.dylib",
 				Path.Combine(PlatformLibraryPath, "libhostfxr.dylib"));
 
-			RuntimeDependencies.Add("$(BinaryOutputDir)/CoreCLR.runtimeconfig.json",
+			RuntimeDependencies.Add($"{BinaryOutputDirectory}/CoreCLR.runtimeconfig.json",
 				Path.Combine(PlatformLibraryPath, "CoreCLR.runtimeconfig.json"));
 
-			var SharedDirectory = $"$(BinaryOutputDir)/{SharedPath}";
+			var SharedDirectory = $"{BinaryOutputDirectory}/{SharedPath}";
 
 			var Files = GetFiles(Path.Combine(PlatformLibraryPath, "net"));
 
