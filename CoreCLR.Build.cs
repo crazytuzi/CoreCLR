@@ -127,7 +127,10 @@ public class CoreCLR : ModuleRules
 				"libSystem.IO.Compression.Native.so",
 				"libSystem.Native.so",
 				"libSystem.Net.Security.Native.so",
-				"libSystem.Security.Cryptography.Native.OpenSsl.so"
+				"libSystem.Security.Cryptography.Native.OpenSsl.so",
+				"libicuuc.so.76.1",
+				"libicui18n.so.76.1",
+				"libicudata.so.76.1"
 			};
 
 			foreach (var SharedObject in SharedObjects)
