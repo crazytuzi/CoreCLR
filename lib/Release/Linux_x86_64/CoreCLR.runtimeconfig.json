@@ -9,6 +9,7 @@
       "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false,
       "System.GC.Concurrent": true,
       "System.GC.Server": false,
+      "System.Runtime.TieredCompilation": false,
       "System.Globalization.AppLocalIcu": "76.1"
     }
   }
